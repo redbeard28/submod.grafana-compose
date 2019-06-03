@@ -1,0 +1,47 @@
+version: '3.4'
+services:
+  # FRONT
+  grafana:
+    # Full tag list: https://hub.docker.com/r/grafana/grafana/tags
+    image: grafana/grafana
+    deploy:
+      replicas: {{ grafana_deploy_replica }}
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - type: volume
+        source: grafana-data
+        target: /var/lib/grafana
+        volume:
+          nocopy: true
+      - type: volume
+        source: grafana-config
+        target: /etc/grafana
+        volume:
+          nocopy: true
+      - type: volume
+        source: grafana-dashboards
+        target: /var/lib/grafana/dashboards
+        volume:
+          nocopy: true
+    ports:
+      # The WebUI for Grafana is served on port 3000
+      - "{{ grafana_external_port }}:3000"
+
+volumes:
+  grafana-data:
+    driver_opts:
+      type: "nfs"
+      o: "addr={{ grafana_nfs_server }},nolock,soft,rw"
+      device: ":{{ grafana_data_nfs_path }}"
+  grafana-config:
+    driver_opts:
+      type: "nfs"
+      o: "addr={{ grafana_nfs_server }},nolock,soft,rw"
+      device: ":{{ grafana_config_nfs_path }}"
+  grafana-dashboards:
+    driver_opts:
+      type: "nfs"
+      o: "addr={{ grafana_nfs_server }},nolock,soft,rw"
+      device: ":{{ grafana_dashboards_nfs_path }}"
